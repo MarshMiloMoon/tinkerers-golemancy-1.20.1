@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "tinkergolems",
+	"version": "${version}",
+	"name": "Tinkerer's Golemancy",
+	"description": "Adds some helpful new golems to the game!",
+	"authors": [
+		"MarshMiloMoon", "ScarlettFrost"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/myths-and-monoliths",
+		"sources": "https://github.com/MarshMiloMoon/myths-and-monoliths-fabric-1.21.1"
+	},
+	"license": "MIT",
+	"icon": "assets/tinkergolems/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.starglobe.tinkergolems.TinkerersGolemancy"
+		],
+		"client": [
+			"net.starglobe.tinkergolems.TinkerersGolemancyClient"
+		],
+		"fabric-datagen": [
+			"net.starglobe.tinkergolems.TinkerersGolemancyDataGenerator"
+		]
+	},
+	"mixins": [
+		"tinkergolems.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.7",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
