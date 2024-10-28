@@ -38,21 +38,6 @@ public class WrenchItem extends SwordItem {
 		super(ToolMaterials.IRON, 3, -2.4f, settings);
 	}
 
-	/*public WrenchItem(int attackDamage, float attackSpeed, Settings settings) {
-		super(settings);
-		this.attackDamage = (float)attackDamage + ToolMaterials.IRON.getAttackDamage();
-		ImmutableMultimap.Builder<EntityAttribute, EntityAttributeModifier> builder = ImmutableMultimap.builder();
-		builder.put(
-				EntityAttributes.GENERIC_ATTACK_DAMAGE,
-				new EntityAttributeModifier(ATTACK_DAMAGE_MODIFIER_ID, "Weapon modifier", (double)this.attackDamage, EntityAttributeModifier.Operation.ADDITION)
-		);
-		builder.put(
-				EntityAttributes.GENERIC_ATTACK_SPEED,
-				new EntityAttributeModifier(ATTACK_SPEED_MODIFIER_ID, "Weapon modifier", (double)attackSpeed, EntityAttributeModifier.Operation.ADDITION)
-		);
-		this.attributeModifiers = builder.build();
-	}*/
-
 	@Override
 	public boolean canMine(BlockState state, World world, BlockPos pos, PlayerEntity miner) {
 		return !miner.isCreative();
