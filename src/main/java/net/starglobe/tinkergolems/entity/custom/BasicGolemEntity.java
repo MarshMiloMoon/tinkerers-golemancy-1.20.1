@@ -1,15 +1,20 @@
 package net.starglobe.tinkergolems.entity.custom;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BeehiveBlockEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.Shearable;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.passive.BeeEntity;
 import net.minecraft.entity.passive.GolemEntity;
 import net.minecraft.entity.passive.SnowGolemEntity;
@@ -18,10 +23,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.event.GameEvent;
 
 public class BasicGolemEntity extends GolemEntity implements Shearable {
@@ -41,7 +53,35 @@ public class BasicGolemEntity extends GolemEntity implements Shearable {
     @Override
     protected void initGoals() {
         this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new WanderAroundGoal(this, 1D));
+        this.goalSelector.add(1, new FindRailBlocksGoal(this, 0.9f, Blocks.RAIL));
+        this.goalSelector.add(1, new FindRailBlocksGoal(this, 0.9f, Blocks.POWERED_RAIL));
+        this.goalSelector.add(1, new FindRailBlocksGoal(this, 0.9f, Blocks.ACTIVATOR_RAIL));
+        this.goalSelector.add(1, new FindRailBlocksGoal(this, 0.9f, Blocks.DETECTOR_RAIL));
+        this.goalSelector.add(2, new WanderAroundGoal(this, 1D));
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.BLOCK_COPPER_PLACE;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return SoundEvents.ITEM_AXE_SCRAPE;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.ITEM_AXE_SCRAPE;
+    }
+
+    protected SoundEvent getStepSound() {
+        return SoundEvents.BLOCK_COPPER_STEP;
+    }
+
+    @Override
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        this.playSound(this.getStepSound(), 0.15F, 1.0F);
     }
 
     public static DefaultAttributeContainer.Builder createBasicGolemAttributes() {
@@ -119,6 +159,53 @@ public class BasicGolemEntity extends GolemEntity implements Shearable {
             this.dataTracker.set(BASIC_GOLEM_FLAGS, (byte)(b | 16));
         } else {
             this.dataTracker.set(BASIC_GOLEM_FLAGS, (byte)(b & -17));
+        }
+    }
+
+    class FindRailBlocksGoal extends MoveToTargetPosGoal {
+        final Block targetBlock;
+        final MobEntity findRailMob;
+        private int counter;
+        private static final int MAX_COOLDOWN = 20;
+
+        public FindRailBlocksGoal(PathAwareEntity mob, double speed, Block targetBlock) {
+            super(mob, speed, 24);
+            this.targetBlock = targetBlock;
+            this.findRailMob = mob;
+        }
+
+        @Override
+        public boolean canStart() {
+            if (this.cooldown > 0) {
+                this.cooldown--;
+                return false;
+            } else if (this.findTargetPos()) {
+                this.cooldown = toGoalTicks(20);
+                return true;
+            } else {
+                this.cooldown = this.getInterval(this.mob);
+                return false;
+            }
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            this.findRailMob.fallDistance = 1.0F;
+        }
+
+        @Override
+        public void start() {
+            super.start();
+            this.counter = 0;
+        }
+
+        @Override
+        protected boolean isTargetPos(WorldView world, BlockPos pos) {
+            Chunk chunk = world.getChunk(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()), ChunkStatus.FULL, false);
+            return chunk == null
+                    ? false
+                    : chunk.getBlockState(pos).isOf(this.targetBlock) && chunk.getBlockState(pos.up()).isAir() && chunk.getBlockState(pos.up(1)).isAir();
         }
     }
 }
