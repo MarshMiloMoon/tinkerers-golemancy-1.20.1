@@ -10,8 +10,7 @@ import net.minecraft.util.Identifier;
 import net.starglobe.tinkergolems.TinkerersGolemancy;
 
 public class ModItems {
-    public static final Item WRENCH = registerItem("wrench", new SwordItem(ToolMaterials.IRON,
-            3, -2.4f, new FabricItemSettings()));
+    public static final Item WRENCH = registerItem("wrench", new WrenchItem(new FabricItemSettings()));
 
     private static void addItemsToToolTab(FabricItemGroupEntries entries) {
         entries.add(WRENCH);
